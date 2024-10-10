@@ -5,7 +5,7 @@ while true; do
     output=$(/home/$USER/exfilemanager/make-output-crescen "$1")
 
     # Use fzf to select an entry with a custom bind for 'd'
-    selected=$(echo "$output" | fzf --height 40% --reverse --border --bind 'ctrl-d:execute(~/openranger {} )')
+    selected=$(echo "$output" | fzf --height 40% --reverse --border --bind 'ctrl-d:execute(/home/$USER/exfilemanager/openranger {} )')
 
     # If the user presses Esc or no selection was made, exit the script
     if [ -z "$selected" ]; then
