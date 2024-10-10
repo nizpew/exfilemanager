@@ -1,7 +1,7 @@
 # cli-ex-file-manager
 
 ## Description. 
-
+[status: partially working]
 A script to help you find what's taking up disk space on your Linux machine, with AI capabilities.
 
 Functionalities
