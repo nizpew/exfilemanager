@@ -39,7 +39,7 @@ Usage
 
 Dependencies
 
-    andrew/tgpt ,  curl , sudo , stterm , fzf 
+    andrew/tgpt ,  curl , sudo , stterm , fzf , ranger, git, tgpt
 
 Credit: https://github.com/aandrew-me/tgpt
 
@@ -50,4 +50,4 @@ To-Do
     improve ranger implementatio
     improve security
     Implement error handling for sudo permissions.
-
+    add -s [specify, flag]
