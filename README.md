@@ -22,6 +22,8 @@ Functionalities
    sudo chmod +x /usr/local/bin/exfilemanagercli
    cd
    exfilemanagercli
+   python3 -m http.server 8000
+   chromium http://localhost:8000/disk_dashboard.html #or your fav browser
 
 
 Usage

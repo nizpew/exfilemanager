@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>File Analysis - /home/zero</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background: #e8f0fe; font-family: 'Segoe UI', sans-serif; }
+    .container { max-width: 420px; margin: 40px auto; background: #fff; border-radius: 24px; box-shadow: 0 4px 24px #0001; padding: 2em; }
+    h2 { text-align: center; color: #3366cc; margin-bottom: 0.5em; }
+    .subtitle { text-align: center; color: #888; margin-bottom: 1.5em; }
+    .donut-summary { display: flex; align-items: center; margin-bottom: 1.5em; }
+    #diskChart { width: 120px !important; height: 120px !important; }
+    .legend { margin-left: 1.5em; }
+    .legend-row { display: flex; align-items: center; margin-bottom: 0.4em; }
+    .legend-color { width: 14px; height: 14px; margin-right: 8px; border-radius: 3px; }
+    .legend-label { font-size: 1em; margin-right: 6px; }
+    .legend-size { color: #888; font-size: 0.95em; }
+    .section { margin-top: 2em; }
+    .section-title { font-weight: 600; font-size: 1.1em; margin-bottom: 0.7em; display: flex; align-items: center;}
+    .section-title i { margin-right: 8px; color: #ffc107; }
+    .item-list { list-style: none; padding: 0; margin: 0; }
+    .item { display: flex; align-items: center; justify-content: space-between; padding: 0.7em 0; border-bottom: 1px solid #f0f0f0;}
+    .item:last-child { border-bottom: none; }
+    .item-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.4em; border-radius: 8px; margin-right: 12px;}
+    .item-info { flex: 1; }
+    .item-title { font-weight: 500; }
+    .item-path { color: #aaa; font-size: 0.92em; }
+    .item-size { font-weight: 500; color: #3366cc; }
+    .btn { display: block; width: 100%; text-align: center; background: #3366cc; color: #fff; border: none; border-radius: 24px; padding: 0.8em 0; font-size: 1.05em; margin: 1.2em 0; cursor: pointer; transition: background 0.2s;}
+    .btn:hover { background: #2851a3; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; }
+    .section-count { color: #fa8c16; font-size: 0.98em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>File Analysis</h2>
+    <div class="subtitle">Find hidden large files in <b>/home/zero</b></div>
+    <div class="donut-summary">
+      <canvas id="diskChart"></canvas>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><i class="fa-solid fa-database"></i>All storage</div>
+        <div id="totalSize" class="section-count"></div>
+      </div>
+      <ul class="item-list" id="folderList"></ul>
+      <button class="btn" onclick="alert('Show more details coming soon!')">View details</button>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title"><i class="fa-solid fa-folder-open"></i>Large files</div>
+        <div id="largeFileCount" class="section-count"></div>
+      </div>
+      <ul class="item-list" id="largeFiles"></ul>
+    </div>
+  </div>
+  <script>
+    // Replace this with your /home/zero data!
+    const data = [
+      {"size": "74.00GB", "path": "/home/zero"},
+      {"size": "20.00GB", "path": "/home/zero/Downloads"},
+      {"size": "9.50GB", "path": "/home/zero/.cache"},
+      {"size": "6.40GB", "path": "/home/zero/squashfs-root"},
+      {"size": "5.40GB", "path": "/home/zero/snap"},
+      {"size": "5.40GB", "path": "/home/zero/temp"},
+      {"size": "5.10GB", "path": "/home/zero/.tubeup"},
+      {"size": "3.50GB", "path": "/home/zero/.local"},
+      {"size": "3.50GB", "path": "/home/zero/.minecraft"},
+      {"size": "2.50GB", "path": "/home/zero/.npm"},
+      {"size": "2.00GB", "path": "/home/zero/Documents"},
+      {"size": "1.50GB", "path": "/home/zero/.var"},
+      {"size": "1.50GB", "path": "/home/zero/.wine"},
+      {"size": "926MB", "path": "/home/zero/bolt.diy"},
+      {"size": "923MB", "path": "/home/zero/.tlauncher"},
+      {"size": "892MB", "path": "/home/zero/deepwork.ai"},
+      {"size": "676MB", "path": "/home/zero/.config"},
+      {"size": "672MB", "path": "/home/zero/my-linux-post-install"},
+      {"size": "584MB", "path": "/home/zero/piper"},
+      {"size": "442MB", "path": "/home/zero/Job-Portal-Frontend"},
+      {"size": "398MB", "path": "/home/zero/node_modules"},
+      // ... (add more as needed)
+    ];
+
+    // Icon map for file types/folders
+    const iconMap = {
+      "Downloads": ["fa-folder-arrow-down", "#4e79a7"],
+      ".cache": ["fa-database", "#f28e2b"],
+      "squashfs-root": ["fa-hdd", "#e15759"],
+      "snap": ["fa-cube", "#76b7b2"],
+      "temp": ["fa-temperature-three-quarters", "#edc949"],
+      ".tubeup": ["fa-tube", "#af7aa1"],
+      ".local": ["fa-folder", "#59a14f"],
+      ".minecraft": ["fa-cube", "#af7aa1"],
+      ".npm": ["fa-box", "#edc949"],
+      "Documents": ["fa-file-lines", "#3366cc"],
+      ".var": ["fa-folder", "#bdbdbd"],
+      ".wine": ["fa-wine-bottle", "#a259a1"],
+      "bolt.diy": ["fa-bolt", "#e15759"],
+      ".tlauncher": ["fa-rocket", "#f28e2b"],
+      "deepwork.ai": ["fa-brain", "#4e79a7"],
+      ".config": ["fa-cogs", "#59a14f"],
+      "my-linux-post-install": ["fa-terminal", "#edc949"],
+      "piper": ["fa-volume-up", "#76b7b2"],
+      "Job-Portal-Frontend": ["fa-laptop-code", "#3366cc"],
+      "node_modules": ["fa-boxes-stacked", "#af7aa1"],
+    };
+
+    // Utility: Parse size string to GB
+    function parseSize(size) {
+      if (size.endsWith('GB')) return parseFloat(size);
+      if (size.endsWith('MB')) return parseFloat(size) / 1024;
+      if (size.endsWith('KB')) return parseFloat(size) / 1024 / 1024;
+      return 0;
+    }
+    function formatSize(gb) {
+      if (gb >= 1) return gb.toFixed(2) + "GB";
+      if (gb >= 1/1024) return (gb * 1024).toFixed(0) + "MB";
+      return (gb * 1024 * 1024).toFixed(0) + "KB";
+    }
+
+    // Donut chart groups (customize as needed)
+    const chartGroups = [
+      {label: "Downloads", match: /Downloads/i},
+      {label: "Cache", match: /cache/i},
+      {label: "Games", match: /minecraft|tlauncher/i},
+      {label: "Apps", match: /snap|node_modules|.npm|.local|Job-Portal-Frontend|my-linux-post-install|.tubeup/i},
+      {label: "Documents", match: /Documents/i},
+      {label: "Others", match: /.*/},
+    ];
+
+    // Group data for donut chart
+    let groupSizes = {};
+    let totalSize = 0;
+    data.forEach(d => {
+      let gb = parseSize(d.size);
+      totalSize += gb;
+      let group = chartGroups.find(g => g.match.test(d.path));
+      groupSizes[group.label] = (groupSizes[group.label] || 0) + gb;
+    });
+
+    // Prepare chart data
+    const chartLabels = chartGroups.map(g => g.label);
+    const chartData = chartGroups.map(g => groupSizes[g.label] || 0);
+    const chartColors = ["#4e79a7", "#f28e2b", "#af7aa1", "#59a14f", "#3366cc", "#edc949"];
+
+    // Donut chart
+    const ctx = document.getElementById('diskChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          data: chartData,
+          backgroundColor: chartColors,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        cutout: '70%',
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // Legend
+    const legend = document.getElementById('legend');
+    chartLabels.forEach((label, i) => {
+      legend.innerHTML += `
+        <div class="legend-row">
+          <span class="legend-color" style="background:${chartColors[i]}"></span>
+          <span class="legend-label">${label}:</span>
+          <span class="legend-size">${formatSize(chartData[i])}</span>
+        </div>`;
+    });
+
+    // All storage (folders/files list)
+    const folderList = document.getElementById('folderList');
+    // Sort by size descending
+    const sortedData = data.slice().sort((a,b) => parseSize(b.size) - parseSize(a.size));
+    sortedData.forEach(d => {
+      let base = d.path.split('/').pop();
+      let gb = parseSize(d.size);
+      let iconInfo = iconMap[base] || ["fa-folder", "#bdbdbd"];
+      folderList.innerHTML += `
+        <li class="item">
+          <span class="item-icon" style="background:${iconInfo[1]}20"><i class="fa-solid ${iconInfo[0]}" style="color:${iconInfo[1]}"></i></span>
+          <span class="item-info">
+            <span class="item-title">${base}</span><br>
+            <span class="item-path">${d.path}</span>
+          </span>
+          <span class="item-size">${formatSize(gb)}</span>
+        </li>`;
+    });
+    document.getElementById('totalSize').textContent = formatSize(totalSize);
+
+    // Large files (top 5)
+    const largeFiles = document.getElementById('largeFiles');
+    const topFiles = sortedData.slice(0, 5);
+    topFiles.forEach(d => {
+      let base = d.path.split('/').pop();
+      let gb = parseSize(d.size);
+      let iconInfo = iconMap[base] || ["fa-file", "#888"];
+      largeFiles.innerHTML += `
+        <li class="item">
+          <span class="item-icon" style="background:${iconInfo[1]}20"><i class="fa-solid ${iconInfo[0]}" style="color:${iconInfo[1]}"></i></span>
+          <span class="item-info">
+            <span class="item-title">${base}</span><br>
+            <span class="item-path">${d.path}</span>
+          </span>
+          <span class="item-size">${formatSize(gb)}</span>
+        </li>`;
+    });
+    document.getElementById('largeFileCount').textContent = topFiles.length + " items";
+  </script>
+</body>
+</html>
+
