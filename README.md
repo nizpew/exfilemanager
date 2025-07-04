@@ -51,7 +51,21 @@ To-Do
     find / -type f -size +100M
     sudo apt-get clean
     sudo apt-get autoremove
+    
+    
+    
+    #snap auto remove unused
+        echo -e "\nRemovendo snaps antigos (versões desativadas)..."
+        LANG=en_US.UTF-8 snap list --all | awk '/disabled/ {print $1, $3}' | \
+        while read snapname revision; do
+          echo "Removendo $snapname, revisão $revision..."
+          sudo snap remove "$snapname" --revision="$revision"
+        done
 
+
+
+
+    
 
     fix -h
     improve file flowing in fzf
