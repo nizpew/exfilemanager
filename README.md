@@ -47,6 +47,10 @@ Credit: https://github.com/aandrew-me/tgpt
 
 To-Do
 
+    #achar arquivos grandes
+    find / -type f -size +100M
+
+
     fix -h
     improve file flowing in fzf
     improve ranger implementatio
