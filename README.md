@@ -49,6 +49,8 @@ To-Do
 
     #achar arquivos grandes
     find / -type f -size +100M
+    sudo apt-get clean
+    sudo apt-get autoremove
 
 
     fix -h
